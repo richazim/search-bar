@@ -4,35 +4,32 @@ import styles from "./SearchBar.module.css";
 import { User } from "../../types/users";
 
 const SearchBar = () => {
-  const [results, setResults] = useState([]);
-  const [input, setInput] = useState("");
-  const [selectedName, setSelectedName] = useState("")
+  const [inputText, setInputText] = useState("");
+  const [matchingUsers, setMatchingUsers] = useState([]);
+  const [selectedUserName, setSelectedUserName] = useState("");
 
-  const fetchData = (value: string) => {
+  const handleInputTextChange = (inputText: string) => {
+    setInputText(inputText);
+    fetchData(inputText);
+  };
+  
+  const fetchData = (text: string) => {
     fetch("https://jsonplaceholder.typicode.com/users")
       .then((response) => response.json())
       .then((json) => {
-        const results = json.filter((user: User) => {
+        const matchingUsers = json.filter((user: User) => {
           return (
-            value &&
-            user &&
-            user.name &&
-            user.name.toLowerCase().includes(value)
+            text && user && user.name && user.name.toLowerCase().includes(text.toLowerCase())
           );
         });
-        setResults(results);
+        setMatchingUsers(matchingUsers);
       });
   };
 
-  const handleChange = (value: string) => {
-    setInput(value);
-    fetchData(value);
+  const handleUserNameSelection = (userName: string) => {
+    setSelectedUserName(userName);
+    alert(`You selected ${selectedUserName}!`);
   };
-
-  const handleSelect = (selected: string) => {
-    setSelectedName(selected)
-    alert(`You selected ${selectedName}!`);
-}
 
   return (
     <>
@@ -41,22 +38,31 @@ const SearchBar = () => {
         <input
           placeholder="Type to search..."
           className={styles.input}
-          value={input}
-          onChange={(e) => handleChange(e.target.value)}
+          value={inputText}
+          onChange={(e) => handleInputTextChange(e.target.value)}
         />
-      </div>{" "}
-      {results && results.length > 0 ? (
+      </div>
+      {matchingUsers && matchingUsers.length > 0 ? (
         <div className={styles.results_list}>
-          {results.map((result: User, id: number) => {
+          {matchingUsers.map((user: User, id: number) => {
             return (
-              <div key={id} className={styles.search_result} onClick={() => {handleSelect(result.name)}}>
-                {result.name}
+              <div
+                key={id}
+                className={styles.search_result}
+                onClick={() => {
+                  handleUserNameSelection(user.name);
+                }}
+              >
+                {user.name}
               </div>
             );
           })}
         </div>
       ) : (
-        (input && input.length > 0) &&<div className={styles.no_results}>Résultats introuvables</div>
+        inputText &&
+        inputText.length > 0 && (
+          <div className={styles.no_results}>Résultats introuvables</div>
+        )
       )}
     </>
   );
